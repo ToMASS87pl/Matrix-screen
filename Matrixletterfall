@@ -1,0 +1,82 @@
+import pygame
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Set screen dimensions
+screen_width = 800
+screen_height = 600
+screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption("Matrix Effect")
+
+# Colors
+black = (0, 0, 0)
+green = (0, 255, 0)
+
+# Function to generate random letters
+def generate_letter():
+    return random.choice("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+# Class for falling letters
+class FallingLetter:
+    def __init__(self, x, y):
+        self.letter = generate_letter()
+        self.x = x
+        self.y = y
+        self.speed = random.uniform(3, 6)  # Increased speed
+        self.trail = []  # List to store trail positions
+        self.trail_length = 15  # Length of the shadow trail
+
+    def update(self):
+        self.y += self.speed
+        self.trail.append((self.x, self.y))
+        if len(self.trail) > self.trail_length:
+            self.trail.pop(0)
+
+    def draw_trail(self):
+        for i, pos in enumerate(self.trail):
+            x, y = pos
+            alpha = 255 - int((i / self.trail_length) * 255)  # Fading effect
+            shadow_color = (0, 255, 0, alpha)  # Green with alpha
+            pygame.draw.rect(screen, shadow_color, (x, y, 10, 10))
+
+    def draw(self):
+        font = pygame.font.Font(None, 36)
+        text_surface = font.render(self.letter, True, green)
+        screen.blit(text_surface, (self.x, self.y))
+
+# Create a list to hold falling letters
+letters = []
+
+# Game loop
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_q:
+                running = False
+
+    # Clear the screen
+    screen.fill(black)  #  <-- This line should be inside the loop
+
+    # Create new letters
+    if random.randint(0, 2) == 0:  # Increased frequency
+        letters.append(FallingLetter(random.randint(0, screen_width), 0))
+
+    # Update and draw letters
+    for letter in letters:
+        letter.update()
+        letter.draw_trail()  # Draw the shadow trail
+        letter.draw()
+
+    # Remove letters that go off-screen
+    letters = [letter for letter in letters if letter.y < screen_height]
+
+    # Update the display
+    pygame.display.flip()
+
+# Quit Pygame
+pygame.quit()
